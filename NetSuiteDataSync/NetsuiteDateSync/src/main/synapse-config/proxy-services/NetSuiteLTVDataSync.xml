@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy name="NetSuiteLTVDataSync" startOnLoad="true" transports="http https" xmlns="http://ws.apache.org/ns/synapse">
+    <target>
+        <inSequence>
+            <class name="com.wso2.netsuite.oauthentication.NetsuiteOauthentication"/>
+            <log>
+                <property expression="$ctx:OAuthVal" name="OAuthVal log: "/>
+            </log>
+            <header expression="$ctx:OAuthVal" name="Authorization" scope="transport"/>
+            <header name="Content-Type" scope="transport" value="application/json"/>
+            <!--<header name="Accept" scope="transport" value="*/*"/>
+            <header name="Cache-Control" scope="transport" value="no-cache"/>
+            <header name="Host" scope="transport" value="3883026.restlets.api.netsuite.com"/> -->
+            <log level="full"/>
+            <call>
+                <endpoint>
+                    <http method="get" uri-template="https://3883026.restlets.api.netsuite.com/app/site/hosting/restlet.nl?script=325&amp;deploy=1"/>
+                </endpoint>
+            </call>
+            <log level="full"/>
+        </inSequence>
+        <outSequence/>
+        <faultSequence/>
+    </target>
+</proxy>
