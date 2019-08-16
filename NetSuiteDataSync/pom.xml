@@ -11,6 +11,7 @@
   <modules>
     <module>NetsuiteDateSync</module>
     <module>Oauthentication</module>
+    <module>NetsuiteDataServices</module>
     <module>NetsuiteSyncCApp</module>
   </modules>
   <build>

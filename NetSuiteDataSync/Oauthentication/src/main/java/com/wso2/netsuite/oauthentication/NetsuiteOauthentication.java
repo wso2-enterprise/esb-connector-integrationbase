@@ -1,5 +1,6 @@
 package com.wso2.netsuite.oauthentication;
 
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.net.URI;
@@ -9,9 +10,18 @@ import java.security.GeneralSecurityException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.xml.sax.InputSource;
 
 import org.apache.synapse.MessageContext; 
 import org.apache.synapse.mediators.AbstractMediator;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+
+import org.apache.synapse.config.Entry;
+
 
 
 public class NetsuiteOauthentication extends AbstractMediator { 
@@ -20,6 +30,8 @@ public class NetsuiteOauthentication extends AbstractMediator {
 	private static final String ALPHA_NUMERIC_STRING = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	static String OAuth ="null";
 	private String variableOAuth;
+	private String SCRIPT_DEPLOYMENT_ID;
+	private String SCRIPT_ID;
 	
      
 	public String encodeuri(String datatoencode){
@@ -33,7 +45,6 @@ public class NetsuiteOauthentication extends AbstractMediator {
 			        .replaceAll("\\%29", ")")
 			        .replaceAll("\\%7E", "~");
 		} catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return encodedData;
@@ -50,11 +61,6 @@ public class NetsuiteOauthentication extends AbstractMediator {
 	
 	private String computeSignature(String baseString, String keyString) throws GeneralSecurityException, UnsupportedEncodingException {
 
-		  
-		    
-		    //mac.init(secretKey);
-		    //byte[] text = baseString.getBytes();
-		
 		final String EMPTY_STRING = "";
 		final String CARRIAGE_RETURN = "\r\n";
 		final String UTF8 = "UTF-8";
@@ -67,20 +73,6 @@ public class NetsuiteOauthentication extends AbstractMediator {
 		String base= bytesToBase64String(bytes).replace(CARRIAGE_RETURN, EMPTY_STRING);
 		return URLEncoder.encode(base, "UTF-8");
 		
-		
-		
-		 	//Mac mac = Mac.getInstance("HMAC-SHA1");
-		 	//SecretKey secretKey = null;
-		    //byte[] keyBytes = keyString.getBytes();
-		    //secretKey = new SecretKeySpec(keyBytes, "HmacSHA1");
-		 	
-	        //mac.init(new SecretKeySpec(Base64.decodeBase64(keyString).getBytes("UTF-8"), "HMAC-SHA1"));
-	        //String sig = new String(Base64.encodeBase64(mac.doFinal(baseString.getBytes())));
-	        //return URLEncoder.encode(sig, "UTF-8");
-		
-		
-	  
-	   // return new String(Base64.encodeBase64String(text));
 	}
 
 	private String bytesToBase64String(byte[] bytes) {
@@ -89,37 +81,49 @@ public class NetsuiteOauthentication extends AbstractMediator {
 
 	public boolean mediate(MessageContext context) { 
 		try {
-			String BASE_URL = "xxxxxxxxxxxxxxxxxxxx";
-			String HTTP_METHOD = "GET";
-			String TOKEN_ID = "xxxxxxxxxxxxxxxxxxxx";
-			String TOKEN_SECRET = "xxxxxxxxxxxxxxxxxxxx";
-			String CONSUMER_KEY = "xxxxxxxxxxxxxxxxxxxx";
-			String CONSUMER_SECRET = "xxxxxxxxxxxxxxxxxxxx";
-			String SIGNATURE_METHOD =  "HMAC-SHA1";
+			String BASE_URL =  null;	
+			String HTTP_METHOD =  null;	
+			String TOKEN_ID = null;	
+			String TOKEN_SECRET = null;	
+			String CONSUMER_KEY = null;	
+			String CONSUMER_SECRET = null;	
+			String SIGNATURE_METHOD = null;	
 			String OAUTH_NONCE = randomAlphaNumeric(20);
 			String TIME_STAMP = String.valueOf(System.currentTimeMillis() / 1000);
-			String OAUTH_VERSION = "1.0";
-			String SCRIPT_DEPLOYMENT_ID = "1";
-			String REALM="xxxxxxxxxxxxxxxxxxxx";	
-			String NETSUITE_ACCOUNT_ID = "xxxxxxxxxxxxxxxxxxxx";
-			String SCRIPT_ID ="325";
+			String OAUTH_VERSION = null;
+			setScript_deployment_id( (String) context.getProperty("script_deployment_id"));
+			setScript_id( (String) context.getProperty("script_id"));
+			SCRIPT_DEPLOYMENT_ID = getScript_deployment_id();
+			SCRIPT_ID = getScript_id();
+			String REALM= null;	
+			String LOCAL_ENTRY_ID = "NetsuiteConfig";
+			String LOCAL_ENTRY_VALUE = null;
+			Document xmldoc = null;
 			
-			
-			
-			/**$baseString = oauth_get_sbs($httpMethod, $url, array('oauth_consumer_key' => $consumerKey,
-					 'oauth_nonce' => $nonce,
-					 'oauth_signature_method' => $signatureMethod,
-					 'oauth_timestamp' => $timestamp,
-					 'oauth_token' => $tokenKey,
-					 'oauth_version' => $version));*/
-		
-			
-			
+				
+			Entry localEntryObj = (Entry) context.getConfiguration().getLocalRegistry().get(LOCAL_ENTRY_ID);
+            if (localEntryObj != null) {
+            	LOCAL_ENTRY_VALUE = localEntryObj.getValue().toString();
+            	xmldoc = loadXMLFromString(LOCAL_ENTRY_VALUE);
+            	BASE_URL= xmldoc.getElementsByTagName("baseurl").item(0).getTextContent();
+            	HTTP_METHOD = xmldoc.getElementsByTagName("httpmethod").item(0).getTextContent();
+            	TOKEN_ID = xmldoc.getElementsByTagName("tokenid").item(0).getTextContent();
+            	TOKEN_SECRET = xmldoc.getElementsByTagName("tokensecret").item(0).getTextContent();
+            	CONSUMER_KEY = xmldoc.getElementsByTagName("consumerkey").item(0).getTextContent();
+            	CONSUMER_SECRET = xmldoc.getElementsByTagName("consumersecret").item(0).getTextContent();
+            	SIGNATURE_METHOD = xmldoc.getElementsByTagName("signaturemethod").item(0).getTextContent();
+            	OAUTH_VERSION = xmldoc.getElementsByTagName("oauthversion").item(0).getTextContent();
+            	REALM = xmldoc.getElementsByTagName("realm").item(0).getTextContent();
+            }
+            else{
+            	System.out.println("[ERROR] Cannot locate the local entry values...");
+            }
+           			
 			String data = "";
 			data = data + "deploy=" + SCRIPT_DEPLOYMENT_ID + "&";
 			data = data + "oauth_consumer_key=" + CONSUMER_KEY + "&";
 			data = data + "oauth_nonce=" + OAUTH_NONCE + "&";
-			data = data + "oauth_signature_method=" + "HMAC-SHA1" +"&";
+			data = data + "oauth_signature_method=" + SIGNATURE_METHOD +"&";
 			data = data + "oauth_timestamp=" + TIME_STAMP + "&";
 			data = data + "oauth_token=" + TOKEN_ID + "&";
 			data = data + "oauth_version=" + OAUTH_VERSION + "&";
@@ -131,14 +135,6 @@ public class NetsuiteOauthentication extends AbstractMediator {
 			String completeData = HTTP_METHOD + "&" + encode(BASE_URL) + "&"+ encodedData;
 			
 			System.out.println("This is the completeData.... : "+ completeData);
-			
-			//String hmacsha1Data = CryptoJS.HmacSHA1(completeData, CONSUMER_SECRET + "&" + TOKEN_SECRET);
-			//String base64EncodedData = Base64.stringify(hmacsha1Data);
-			//String oauth_signature = encodeURIComponent(base64EncodedData);
-			
-			
-			
-			
 			
 			String key ="";
 			key = encode(CONSUMER_SECRET) + "&" + encode(TOKEN_SECRET); 
@@ -164,6 +160,9 @@ public class NetsuiteOauthentication extends AbstractMediator {
 			} catch (UnsupportedEncodingException | GeneralSecurityException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		return true;
 	}
@@ -173,12 +172,24 @@ public class NetsuiteOauthentication extends AbstractMediator {
 	public void setVariableOAuth(String variableOAuth) {
 		this.variableOAuth = variableOAuth;
 	}
+	public String getScript_deployment_id() {
+		return SCRIPT_DEPLOYMENT_ID;
+	}
+	public void setScript_deployment_id(String script_deployment_id) {
+		this.SCRIPT_DEPLOYMENT_ID = script_deployment_id;
+	}
+	public String getScript_id() {
+		return SCRIPT_ID;
+	}
+	public void setScript_id(String script_id) {
+		this.SCRIPT_ID = script_id;
+	}
 		
 	/**
 	    * percentage encoding
 	    *
 	    * @return A encoded string
-	    */
+	 */
 	 private String encode(String value) {  
 	     String encoded = "";  
 	     try {  
@@ -204,6 +215,19 @@ public class NetsuiteOauthentication extends AbstractMediator {
 	     }  
 	     return sb.toString();  
 	   }  
+	 
+	 /**
+	    * load xml from string
+	    *
+	    * @return A encoded string
+	 */
+	 public static Document loadXMLFromString(String xml) throws Exception
+	 {
+	     DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+	     DocumentBuilder builder = factory.newDocumentBuilder();
+	     InputSource is = new InputSource(new StringReader(xml));
+	     return builder.parse(is);
+	 }
 			
 }
 

@@ -2,15 +2,15 @@
 <proxy name="NetSuiteLTVDataSync" startOnLoad="true" transports="http https" xmlns="http://ws.apache.org/ns/synapse">
     <target>
         <inSequence>
+            <property name="script_id" scope="default" type="STRING" value="325"/>
+            <property name="script_deployment_id" scope="default" type="STRING" value="1"/>
             <class name="com.wso2.netsuite.oauthentication.NetsuiteOauthentication"/>
             <log>
                 <property expression="$ctx:OAuthVal" name="OAuthVal log: "/>
             </log>
             <header expression="$ctx:OAuthVal" name="Authorization" scope="transport"/>
             <header name="Content-Type" scope="transport" value="application/json"/>
-            <!--<header name="Accept" scope="transport" value="*/*"/>
-            <header name="Cache-Control" scope="transport" value="no-cache"/>
-            <header name="Host" scope="transport" value="3883026.restlets.api.netsuite.com"/> -->
+            <property description="messageType" name="messageType" scope="axis2" type="STRING" value="application/json"/>
             <log level="full"/>
             <call>
                 <endpoint>
@@ -19,7 +19,9 @@
             </call>
             <log level="full"/>
         </inSequence>
-        <outSequence/>
+        <outSequence>
+            <property description="messageType" name="messageType" scope="axis2" type="STRING" value="application/json"/>
+        </outSequence>
         <faultSequence/>
     </target>
 </proxy>

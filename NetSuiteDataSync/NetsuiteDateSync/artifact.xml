@@ -2,4 +2,7 @@
     <artifact name="NetSuiteLTVDataSync" groupId="com.wso2.NetsuiteDateSync.proxy-service" version="1.0.0" type="synapse/proxy-service" serverRole="EnterpriseServiceBus">
         <file>src/main/synapse-config/proxy-services/NetSuiteLTVDataSync.xml</file>
     </artifact>
+    <artifact name="NetsuiteConfig" groupId="com.wso2.NetsuiteDateSync.local-entry" version="1.0.0" type="synapse/local-entry" serverRole="EnterpriseServiceBus">
+        <file>src/main/synapse-config/local-entries/NetsuiteConfig.xml</file>
+    </artifact>
 </artifacts>

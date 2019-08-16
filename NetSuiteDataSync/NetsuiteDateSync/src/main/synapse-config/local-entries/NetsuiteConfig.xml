@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="NetsuiteConfig" xmlns="http://ws.apache.org/ns/synapse">
+    <list>
+        <baseurl>https://3883026.restlets.api.netsuite.com/app/site/hosting/restlet.nl</baseurl>
+        <httpmethod>GET</httpmethod>
+        <tokenid>0bf472fb7ecaf5cd9c8d0f1d5bf8639f2f6fe950ddf5b1f3deec8e85d48db1e7</tokenid>
+        <tokensecret>1ddad7c89a798f9a0f74ae02cebcc4f3398e53b03f27e49bcdbdea710e4779a9</tokensecret>
+        <consumerkey>27b39cb7a9b0999357f81e099d331efbb84c56e0324d2ac9c48bb9dc8321a2d4</consumerkey>
+        <consumersecret>41c8e872676cad5f2752972987b9bc0250e8bb2cb4780e98ffd3d99fcaf76a40</consumersecret>
+        <signaturemethod>HMAC-SHA1</signaturemethod>
+        <oauthversion>1.0</oauthversion>
+        <realm>3883026</realm>
+    </list>
+</localEntry>
