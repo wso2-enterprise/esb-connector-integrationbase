@@ -1,1 +1,1 @@
-# esb-connector-integrationbase
+# [DEPRECATED] esb-connector-integrationbase
